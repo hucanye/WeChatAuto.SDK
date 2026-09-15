@@ -35,6 +35,7 @@ using NAudio.CoreAudioApi;
 using NAudio.Wave;
 using WeChatAuto.Options;
 using WeChatAuto.Services;
+using Dm.util;
 
 namespace WeChatAuto.Components
 {
@@ -582,9 +583,6 @@ namespace WeChatAuto.Components
 			Window subWin = _GetPopupHistoryWin(automation, title, historyButton);
 			if (subWin == null)
 				return;
-			// int targetX = _Client.MainWindow.BoundingRectangle.X + (int)((_Client.MainWindow.BoundingRectangle.Width - subWin.BoundingRectangle.Width) / 2);
-			// int targetY = _Client.MainWindow.BoundingRectangle.Y + (int)((_Client.MainWindow.BoundingRectangle.Height - subWin.BoundingRectangle.Height) / 2);
-			// subWin.Move(targetX, targetY);  //移动子窗口至主窗口中间
 			_Client.MoveWinToMainCenter(subWin);
 			RandomWait.Wait(600, 1200);
 			if (refer.Date != DateOnly.MinValue)
@@ -754,10 +752,17 @@ namespace WeChatAuto.Components
 				SupperMouseKey.TypeSimultaneously(VirtualKeyShort.BACK);
 				RandomWait.Wait(200, 900);
 				string[] contents = refer.Message.Message.Split('\n');
-				ClipboardHelper.SetText(contents[0]);
-				SupperMouseKey.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V);
-				RandomWait.Wait(200, 1500);
-
+				var result = ClipboardHelper.SetText(contents[0]);
+				if (result)
+				{
+					SupperMouseKey.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V);
+					RandomWait.Wait(200, 1500);
+				}
+				else
+				{
+					searchEdit.Text = contents[0];
+					RandomWait.Wait(200, 1500);
+				}
 			}
 		}
 
@@ -915,20 +920,32 @@ namespace WeChatAuto.Components
 		private void __AtUserInputText(List<string> atUsers, TextBox textBox, string message)
 		{
 			textBox.Focus();
-			ClipboardHelper.SetText(message);
+			// ClipboardHelper.SetText(message);
 			var point = textBox.BoundingRectangle.SafeRandomPoint();
 			Mouse.Position = point;
 			Mouse.Click();
-			__AtUserList(atUsers, textBox);
+			__AtUserList(atUsers, textBox, message);
 			textBox.Focus();
-			ClipboardHelper.SetText(message);
-			RandomWait.Wait(50, 300);
-			Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V);
-			RandomWait.Wait(50, 800);
-			Keyboard.TypeSimultaneously(VirtualKeyShort.ENTER);
+			var result = ClipboardHelper.SetText(message);
+			if (result)
+			{
+				RandomWait.Wait(50, 300);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V);
+				RandomWait.Wait(50, 800);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.ENTER);
+			}
+			else
+			{
+				WindowsInputHelper.ForceEnglishInput((uint)this._Client.MainWindow.Properties.ProcessId.Value);
+				message = message.replace("\r\n","\n");
+				SupperMouseKey.Type(message);
+				RandomWait.Wait(50, 800);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.ENTER);
+				RandomWait.Wait(50, 800);
+			}
 		}
 
-		private void __AtUserList(List<string> atUsers, TextBox textBox)
+		private void __AtUserList(List<string> atUsers, TextBox textBox, string message)
 		{
 			RandomWait.Wait(50, 300);
 			Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
@@ -1001,18 +1018,34 @@ namespace WeChatAuto.Components
 		private void __InputText(TextBox textBox, string message)
 		{
 			textBox.Focus();
-			ClipboardHelper.SetText(message);
-			var point = textBox.BoundingRectangle.SafeRandomPoint();
-			Mouse.Position = point;
-			Mouse.Click();
-			RandomWait.Wait(50, 300);
-			Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
-			RandomWait.Wait(50, 300);
-			Keyboard.TypeSimultaneously(VirtualKeyShort.BACK);
-			RandomWait.Wait(50, 300);
-			Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V);
-			RandomWait.Wait(50, 800);
-			Keyboard.TypeSimultaneously(VirtualKeyShort.ENTER);
+			var result = ClipboardHelper.SetText(message);
+			if (result)
+			{
+				var point = textBox.BoundingRectangle.SafeRandomPoint();
+				Mouse.Position = point;
+				Mouse.Click();
+				RandomWait.Wait(50, 300);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
+				RandomWait.Wait(50, 300);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.BACK);
+				RandomWait.Wait(50, 300);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_V);
+				RandomWait.Wait(50, 800);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.ENTER);
+				RandomWait.Wait(50, 300);
+			}
+			else
+			{
+				//兜底方案
+				textBox.Text = message;
+				RandomWait.Wait(100, 600);
+				var point = textBox.BoundingRectangle.SafeRandomPoint();
+				Mouse.Position = point;
+				Mouse.Click();
+				RandomWait.Wait(50, 300);
+				Keyboard.TypeSimultaneously(VirtualKeyShort.ENTER);
+				RandomWait.Wait(50, 300);
+			}
 		}
 
 		/// <summary>

@@ -18,6 +18,7 @@ using WeChatAuto.Models;
 using System.IO;
 using WeAutoCommon.Extentions;
 using System.Windows.Controls;
+using Dm.util;
 
 namespace WeChatAuto.Components
 {
@@ -190,15 +191,23 @@ namespace WeChatAuto.Components
 
         private Maybe<bool> _ProcessNotifyButtons(UIA3Automation automation, AutomationElement[] buttons)
         {
-            var index = 0;
-            foreach (var wxNotifyButton in buttons)
+            try
             {
-                index++;
-                _InitWechatAutomationFramework(automation, wxNotifyButton, index);
+                var index = 0;
+                foreach (var wxNotifyButton in buttons)
+                {
+                    index++;
+                    _InitWechatAutomationFramework(automation, wxNotifyButton, index);
+                }
+                this._IsInit = true;
+                _logger.Trace($"当前微信客户端数量: 共{_wxClientList.Count}个");
+                return _IsInit.ToMaybe();
             }
-            this._IsInit = true;
-            _logger.Trace($"当前微信客户端数量: 共{_wxClientList.Count}个");
-            return _IsInit.ToMaybe();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取UI Tree时出错，错误原因:{ex.toString()}");
+                throw;
+            }
         }
         /// <summary>
         /// 初始化微信自动化整个框架
@@ -213,6 +222,9 @@ namespace WeChatAuto.Components
             wxNotifyButton.AsButton().Click();
             RandomWait.Wait(100, 800);
             var topWindowProcessId = _GetTopWindowProcessIdResult();  //当前微信的processid
+            //关闭输入法,以方便Keyboard.Type函数正确
+            WindowsInputHelper.ForceEnglishInput((uint)topWindowProcessId.Result);
+            RandomWait.Wait(100, 800);
             (OwerInfo info, Window window) result = __GetCurrentWxNickName(topWindowProcessId.Result, automation);
             result.window.Focus();
             var client = new WeChatClient(topWindowProcessId.Result, _serviceProvider, this, result.window, MainActionThreadInvoker, result.info, index, monitorEvent);

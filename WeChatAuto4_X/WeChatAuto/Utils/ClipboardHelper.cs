@@ -10,7 +10,11 @@ namespace WeChatAuto.Utils
     /// </summary>
     public static class ClipboardHelper
     {
-        public static void SetText(string text)
+        /// <summary>
+        /// 将文字放入剪切板.
+        /// </summary>
+        /// <param name="text"></param>
+        public static bool SetText(string text)
         {
             Exception ex = null;
 
@@ -18,6 +22,7 @@ namespace WeChatAuto.Utils
             {
                 try
                 {
+                    // throw new Exception("测试");
                     System.Windows.Clipboard.SetText(text);
                 }
                 catch (Exception e)
@@ -32,7 +37,8 @@ namespace WeChatAuto.Utils
             thread.Join();
 
             if (ex != null)
-                throw ex;
+                return false;
+            return true;
         }
     }
 }

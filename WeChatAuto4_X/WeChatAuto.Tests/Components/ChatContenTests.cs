@@ -103,7 +103,7 @@ public class ChatContenTests
 旅游、美食、日常琐事、个人动态等。
 
 请将公共讨论资源留给技术话题，踩红线必T
-""", new List<string> { "所有人", "AI.Net", "", "秋歌" });
+""", new List<string> { "所有人", "AI.Net", "", "秋歌","不存在的人" });
     }
 
     [Theory(DisplayName = "测试发送图片")]
