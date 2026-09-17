@@ -212,53 +212,53 @@ public class ChatContenTests
             Instructions = "请以央视追悼会的方式：低音，语速缓慢，沉重，严肃的方式来念这个追悼词"
         });
         await Task.Delay(1000);
-        //测试二： 撒娇搞怪型
-        await client.SendVoiceMessageWithTTS(groupName, apiKey, """
-        呜呜呜~~
-        菜鸟哥哥怎么突然下线啦？人家还没玩够呢！封号坏坏！希望你下辈子不要碰数据库啦，回来继续陪大家聊天呀，爱你哦～
-        """, new Options.VoiceOptions
-        {
-            Voice = "Momo",
-            LanguageType = "Chinese",
-            Instructions = "请以撒娇搞怪，逗人开心的风格说这话,可以语速快一些"
-        });
-        // //测试三： 温柔小姐姐
-        await Task.Delay(1000);
-        await client.SendVoiceMessageWithTTS(groupName, apiKey, """
-        啊~~~
-        菜鸟，谢谢你陪伴大家度过许多快乐时光。虽然今天遗憾离开了群聊，但你的传说依然还在。愿你来世账号常青，不再被封。
-        """, new Options.VoiceOptions
-        {
-            Voice = "Maia",
-            LanguageType = "Chinese",
-            Instructions = "请以温柔小姐姐风格说这些话"
-        });
-        // //测试四： 讲书型
-        await Task.Delay(1000);
-        await client.SendVoiceMessageWithTTS(groupName, apiKey, """
-        话说这菜鸟,无产阶级优秀战士，江湖路远，你却先走一步。不是你技不如人，只是风太大。今日敬你一声好汉，愿来世执代码为剑，再战封号江湖！
-        """, new Options.VoiceOptions
-        {
-            Voice = "Vincent",
-            Instructions = "以说书的风格来讲述这些话"
-        });
-        await Task.Delay(1000);
-        //测试五： 跳脱市井的四川成都男子
-        await client.SendVoiceMessageWithTTS(groupName, apiKey, """
-        哎呀，菜鸟哦，你咋个就遭封咯嘛！昨天还摆龙门阵，今天头像都灰起了。兄弟伙敬你一杯可乐，来世莫去捅数据库咯，安逸点嘛！
-        """, new Options.VoiceOptions
-        {
-            Voice = "Eric",
-            LanguageType = "Chinese",
-        });
-        //测试六：粤语版
-        await Task.Delay(1000);
-        await client.SendVoiceMessageWithTTS(groupName, apiKey, """
-        哎呀，菜鸟仔，你搞乜鬼啫？好地地去搞数据库，依家搞到自己畀人封咗。早知听阿叔一句啦！依家好喇，头像都灰埋，阴功！
-        """, new Options.VoiceOptions
-        {
-            Voice = "Rocky"
-        });
+        // //测试二： 撒娇搞怪型
+        // await client.SendVoiceMessageWithTTS(groupName, apiKey, """
+        // 呜呜呜~~
+        // 菜鸟哥哥怎么突然下线啦？人家还没玩够呢！封号坏坏！希望你下辈子不要碰数据库啦，回来继续陪大家聊天呀，爱你哦～
+        // """, new Options.VoiceOptions
+        // {
+        //     Voice = "Momo",
+        //     LanguageType = "Chinese",
+        //     Instructions = "请以撒娇搞怪，逗人开心的风格说这话,可以语速快一些"
+        // });
+        // // //测试三： 温柔小姐姐
+        // await Task.Delay(1000);
+        // await client.SendVoiceMessageWithTTS(groupName, apiKey, """
+        // 啊~~~
+        // 菜鸟，谢谢你陪伴大家度过许多快乐时光。虽然今天遗憾离开了群聊，但你的传说依然还在。愿你来世账号常青，不再被封。
+        // """, new Options.VoiceOptions
+        // {
+        //     Voice = "Maia",
+        //     LanguageType = "Chinese",
+        //     Instructions = "请以温柔小姐姐风格说这些话"
+        // });
+        // // //测试四： 讲书型
+        // await Task.Delay(1000);
+        // await client.SendVoiceMessageWithTTS(groupName, apiKey, """
+        // 话说这菜鸟,无产阶级优秀战士，江湖路远，你却先走一步。不是你技不如人，只是风太大。今日敬你一声好汉，愿来世执代码为剑，再战封号江湖！
+        // """, new Options.VoiceOptions
+        // {
+        //     Voice = "Vincent",
+        //     Instructions = "以说书的风格来讲述这些话"
+        // });
+        // await Task.Delay(1000);
+        // //测试五： 跳脱市井的四川成都男子
+        // await client.SendVoiceMessageWithTTS(groupName, apiKey, """
+        // 哎呀，菜鸟哦，你咋个就遭封咯嘛！昨天还摆龙门阵，今天头像都灰起了。兄弟伙敬你一杯可乐，来世莫去捅数据库咯，安逸点嘛！
+        // """, new Options.VoiceOptions
+        // {
+        //     Voice = "Eric",
+        //     LanguageType = "Chinese",
+        // });
+        // //测试六：粤语版
+        // await Task.Delay(1000);
+        // await client.SendVoiceMessageWithTTS(groupName, apiKey, """
+        // 哎呀，菜鸟仔，你搞乜鬼啫？好地地去搞数据库，依家搞到自己畀人封咗。早知听阿叔一句啦！依家好喇，头像都灰埋，阴功！
+        // """, new Options.VoiceOptions
+        // {
+        //     Voice = "Rocky"
+        // });
     }
 
     [Fact(DisplayName = "测试发送语音消息 - 直接通过文字转语音发送 - 并优化成人类可听形式")]
@@ -266,7 +266,7 @@ public class ChatContenTests
     {
         var framework = _globalFixture.clientFactory;
         var client = framework.GetWeChatClient(_wxClientName);
-        var groupName = "人工智能自动化技术讨论群";
+        var groupName = "DroidMirror官方技术支持";
         var apiKey = Environment.GetEnvironmentVariable("QWEN_API_KEY");
         await client.SendVoiceMessageWithTTS(groupName, apiKey, """
         大家好，

@@ -428,8 +428,20 @@ namespace WeChatAuto.Components
 				point = point.Confusion(30, 2);
 				Mouse.MoveTo(point);
 				RandomWait.Wait(300, 900);
-				SupperMouseKey.LeftClick();
-				RandomWait.Wait(300, 900);
+				// SupperMouseKey.LeftClick();
+				// RandomWait.Wait(300, 900);
+				path = "/Group/Custom/Group/Group/Group/Custom/Custom/Custom/Group/Custom/Custom/Group/Custom/Group/Group/Group/ToolBar/Group/Group/Button/Group/Button[@Name='发送语音']";
+				buttonRetry = Retry.WhileNull(() => this._Client.MainWindow.FindFirstByXPath(path), TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(200));
+				if (buttonRetry.Success)
+				{
+					this._Client.MainWindow.Focus();
+					var point1 = buttonRetry.Result.AsButton().GetClickablePoint();
+					point1 = point1.Confusion(3, 3);
+					Mouse.MoveTo(point1);
+					RandomWait.Wait(300, 700);
+					SupperMouseKey.LeftClick();
+					RandomWait.Wait(300, 900);
+				}
 				point = point.Confusion(100, 100);
 				Mouse.MoveTo(point);
 			}
@@ -937,7 +949,7 @@ namespace WeChatAuto.Components
 			else
 			{
 				WindowsInputHelper.ForceEnglishInput((uint)this._Client.MainWindow.Properties.ProcessId.Value);
-				message = message.replace("\r\n","\n");
+				message = message.replace("\r\n", "\n");
 				SupperMouseKey.Type(message);
 				RandomWait.Wait(50, 800);
 				Keyboard.TypeSimultaneously(VirtualKeyShort.ENTER);
