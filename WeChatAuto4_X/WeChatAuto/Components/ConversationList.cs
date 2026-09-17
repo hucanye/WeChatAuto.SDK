@@ -238,9 +238,31 @@ namespace WeChatAuto.Components
             return result;
         }
         /// <summary>
+        /// 如果子窗口存在，关闭子窗口，如果不存在，则不做动作。
+        /// </summary>
+        /// <param name="who">好友、群的昵称</param>
+        /// <returns></returns>
+        public async Task CloseSubWin(string who)
+        {
+            await WeChatInvoker.Call(CloseSubWinCore, who);
+        }
+
+        private void CloseSubWinCore(UIA3Automation automation, string who)
+        {
+            var desktop = automation.GetDesktop();
+            var subWinRetry = Retry.WhileNull(() => desktop.FindFirstChild(cf => cf.ByClassName("mmui::ChatSingleWindow").And(cf.ByControlType(ControlType.Window).And(cf.ByName(who)))), TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(200));
+            if (subWinRetry.Success)
+            {
+                var subWin = subWinRetry.Result.AsWindow();
+                subWin.Close();
+                RandomWait.Wait(100, 800);
+            }
+        }
+
+        /// <summary>
         /// 打开who指定的子窗口
         /// </summary>
-        /// <param name="who"></param>
+        /// <param name="who">好友、群的昵称</param>
         /// <returns></returns>
         public async Task<Window> OpenSubWin(string who)
         {
@@ -386,8 +408,8 @@ namespace WeChatAuto.Components
         //如果会话列表不存在who,再查询
         private bool _SearchFromEdit(string who, ListBox root)
         {
-            //通过搜索框搜索
-            var path = @"/Group/Custom/Group/Group/Group/Custom/Custom/Group/Group/Group/Group/Group/Edit[@Name='搜索']";
+            //通过搜索框搜索]
+            var path = UITreeGlobal.Search_Bar_Edit;
             var edit = _Client.MainWindow.FindFirstByXPath(path);
             edit.Focus();
             edit.DrawHighlightExt();
@@ -396,7 +418,7 @@ namespace WeChatAuto.Components
             //等候浮动菜单出来
             var popWinResult = Retry.WhileNull(() =>
             {
-                path = @"/Window[@Name='Weixin']/Group/List[@AutomationId='search_list']";
+                path = UITreeGlobal.Search_Bar_PopupMenu;
                 return _Client.MainWindow.FindFirstByXPath(path).AsWindow();
             }, timeout: TimeSpan.FromSeconds(1), interval: TimeSpan.FromMilliseconds(200));
 
