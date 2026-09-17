@@ -68,16 +68,12 @@ public class LcsHelperTest
 
         var newList = new[]
         {
-            "A",
-            "B",
-            "C",
-            "X",
-            "Y",
-            "E",
             "F",
             "G",
             "H",
-            "I"
+            "I",
+            "J",
+            "K"
         };
 
         var diff = LcsHelper.Diff(oldList, newList);
@@ -142,17 +138,12 @@ public class LcsHelperTest
             // "E",
             // "F",
             // "G"
-            "A",
-            "B",
-            "C",
-            "X",
-            "Y",
-            "E",
             "F",
             "G",
             "H",
             "I",
-            "X"
+            "J",
+            "K"
         };
 
         var newItems = LcsHelper.GetNewItems(
