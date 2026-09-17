@@ -163,6 +163,120 @@ namespace WeChatAuto.Utils
 
             return result;
         }
+
+        /// <summary>
+        /// 将Diff结果转换为连续的DiffBlock。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="diff">Diff结果</param>
+        /// <returns></returns>
+        public static List<DiffBlock<T>> ToDiffBlocks<T>(
+            IReadOnlyList<DiffItem<T>> diff)
+        {
+            var result = new List<DiffBlock<T>>();
+
+            if (diff == null || diff.Count == 0)
+                return result;
+
+            var currentType = diff[0].Type;
+            var currentItems = new List<T>();
+
+            foreach (var item in diff)
+            {
+                if (item.Type != currentType)
+                {
+                    result.Add(new DiffBlock<T>(
+                        currentType,
+                        currentItems));
+
+                    currentType = item.Type;
+                    currentItems = new List<T>();
+                }
+
+                currentItems.Add(item.Value);
+            }
+
+            // 最后一个Block
+            result.Add(new DiffBlock<T>(
+                currentType,
+                currentItems));
+
+            return result;
+        }
+
+        /// <summary>
+        /// 根据新旧快照比较得到新增消息。
+        /// </summary>
+        /// <remarks>
+        /// 规则：
+        /// 1. 如果存在连续 Equal >= minEqualCount，则认为新旧快照属于同一个消息序列。
+        /// 2. 取最后一个满足条件的 Equal Block 作为可靠锚点。
+        /// 3. 返回可靠锚点之后的 Insert 消息。
+        /// 4. 如果不存在可靠锚点，则认为新旧快照属于完全不同的消息序列，返回整个 newList。
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="oldList">旧快照</param>
+        /// <param name="newList">新快照</param>
+        /// <param name="comparer">比较器</param>
+        /// <param name="minEqualCount">可靠Equal连续数量，默认3</param>
+        /// <returns>新增消息</returns>
+        public static List<T> GetNewItems<T>(
+            IReadOnlyList<T> oldList,
+            IReadOnlyList<T> newList,
+            IEqualityComparer<T> comparer = null,
+            int minEqualCount = 3)
+        {
+            if (minEqualCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(minEqualCount));
+
+            if (newList == null || newList.Count == 0)
+                return new List<T>();
+
+            // 没有旧快照，整个新快照都是新消息
+            if (oldList == null || oldList.Count == 0)
+                return new List<T>(newList);
+
+            var diff = Diff(oldList, newList, comparer);
+            var blocks = ToDiffBlocks(diff);
+
+            // 找最后一个满足条件的 Equal Block
+            int anchorIndex = -1;
+
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                var block = blocks[i];
+
+                if (block.Type == DiffType.Equal &&
+                    block.Count >= minEqualCount)
+                {
+                    anchorIndex = i;
+                }
+            }
+
+            // 没有可靠锚点：
+            // A、B无法建立可靠的消息序列关系，
+            // 因此认为B是一个新的消息序列。
+            if (anchorIndex < 0)
+            {
+                return new List<T>(newList);
+            }
+
+            // 找到可靠锚点后，
+            // 锚点之后的 Insert 就是新增消息。
+            var result = new List<T>();
+
+            for (int i = anchorIndex + 1; i < blocks.Count; i++)
+            {
+                var block = blocks[i];
+
+                if (block.Type == DiffType.Insert)
+                {
+                    result.AddRange(block.Items);
+                }
+            }
+
+            return result;
+        }
     }
 
     public enum DiffType
@@ -184,4 +298,20 @@ namespace WeChatAuto.Utils
     public sealed record DiffItem<T>(
     DiffType Type,
     T Value);
+
+    /// <summary>
+    /// Diff连续块
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="Type">Diff类型</param>
+    /// <param name="Items">连续的元素</param>
+    public sealed record DiffBlock<T>(
+        DiffType Type,
+        IReadOnlyList<T> Items)
+    {
+        /// <summary>
+        /// 连续块中的元素数量
+        /// </summary>
+        public int Count => Items.Count;
+    }
 }
