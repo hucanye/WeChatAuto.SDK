@@ -272,7 +272,7 @@ namespace WeChatAuto.Components
             await newFriendInvoker.Run(automation =>
             {
                 var desktop = automation.GetDesktop();
-                var windowRetry = Retry.WhileNull(() => desktop.FindFirstChild(cf => cf.ByName("微信").And(cf.ByClassName("mmui::MainWindow").And(cf.ByControlType(ControlType.Window).And(cf.ByProcessId(this._Client.MainWindow.Properties.ProcessId))))), TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(200));
+                var windowRetry = Retry.WhileNull(() => desktop.FindFirstChild(cf =>cf.ByClassName("mmui::MainWindow").And(cf.ByControlType(ControlType.Window).And(cf.ByProcessId(this._Client.MainWindow.Properties.ProcessId)))), TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(200));
                 if (windowRetry.Success)
                 {
                     var window = windowRetry.Result;
