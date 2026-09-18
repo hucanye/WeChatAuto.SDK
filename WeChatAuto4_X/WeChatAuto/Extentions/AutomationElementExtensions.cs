@@ -1,5 +1,8 @@
+using System.Linq;
+using Dm.util;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
+using WeChatAuto.Utils;
 
 namespace WeChatAuto.Extentions
 {
@@ -49,6 +52,19 @@ namespace WeChatAuto.Extentions
             if (element == null) return null;
             var walker = element.Automation.TreeWalkerFactory.GetControlViewWalker();
             return walker.GetParent(element);
+        }
+        /// <summary>
+        /// 检查element是否还在UI Tree上
+        /// </summary>
+        /// <param name="element">待检查的元素</param>
+        /// <param name="parent">元素的父对象</param>
+        /// <returns></returns>
+        public static bool IsElementInTree(this AutomationElement element, AutomationElement parent)
+        {
+            if (element == null || !element.IsAvailable || parent == null)
+                return false;
+            var uniqueString = element.Properties.RuntimeId.ToUniqueString() + "|" + element.Name;
+            return parent.FindAllChildren().Any(u => (u.Properties.RuntimeId.ToUniqueString() + "|" + u.Name).Equals(uniqueString));
         }
     }
 }
