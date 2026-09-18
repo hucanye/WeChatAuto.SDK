@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.WindowsAPI;
@@ -205,6 +206,35 @@ namespace WeChatAuto.Utils
         }
 
         /// <summary>
+        /// 是否包含同一序列
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="oldList">旧快照</param>
+        /// <param name="newList">新快照</param>
+        /// <param name="comparer">比较器</param>
+        /// <param name="minEqualCount">可靠Equal连续数量，默认为3</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static bool IsSameIncludeSequence<T>(IReadOnlyList<T> oldList,
+            IReadOnlyList<T> newList,
+            IEqualityComparer<T> comparer = null,
+            int minEqualCount = 3)
+        {
+            if (minEqualCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(minEqualCount));
+            if (oldList == null || oldList.Count == 0)
+                return false;
+            if (newList == null || newList.Count == 0)
+                return false;
+            var diff = Diff(oldList, newList, comparer);
+            var blocks = ToDiffBlocks(diff);
+            blocks = blocks.Where(u => u.Type == DiffType.Equal && u.Count >= minEqualCount).ToList();
+            if (blocks.Count == 0)
+                return false;
+            return true;
+        }
+
+        /// <summary>
         /// 根据新旧快照比较得到新增消息。
         /// </summary>
         /// <remarks>
@@ -277,6 +307,7 @@ namespace WeChatAuto.Utils
 
             return result;
         }
+
     }
 
     public enum DiffType
