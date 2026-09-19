@@ -62,7 +62,7 @@ namespace WeChatAuto.Options
         /// OCR的padding设置，默认是50
         /// </summary>
         [JsonProperty("ocr_padding")]
-        public int OcrPadding { get; set; } = 50;
+        public int OcrPadding { get; set; } = 20;
         /// <summary>
         /// 设置OCR时是否测试，如果值为True,则会显示每张OCR的画红框图,方便调试,默认为 false.
         /// </summary>
