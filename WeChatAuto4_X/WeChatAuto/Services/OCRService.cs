@@ -19,6 +19,7 @@ using FlaUI.Core.Input;
 using WeAutoCommon.Utils;
 using System.Drawing.Imaging;
 using Emgu.CV.CvEnum;
+using Emgu.CV.Util;
 
 namespace WeChatAuto.Services
 {
@@ -299,6 +300,97 @@ namespace WeChatAuto.Services
 				semaphore.Release();
 			}
 		}
+
+		/// <summary>
+		/// 专门针对微信昵称RIO的OCR前置处理方法
+		/// </summary>
+		/// <param name="src"></param>
+		/// <returns></returns>
+		public Mat PrepareForOcr(Mat src)
+		{
+			// 2. 放大
+			using var resized = new Mat();
+
+			CvInvoke.Resize(
+				src,
+				resized,
+				Size.Empty,
+				3.0,
+				3.0,
+				Inter.Cubic
+			);
+			// 1. BGR -> Gray
+			using var gray = new Mat();
+
+			if (resized.NumberOfChannels == 3)
+			{
+				CvInvoke.CvtColor(
+					resized,
+					gray,
+					ColorConversion.Bgr2Gray
+				);
+			}
+			else
+			{
+				resized.CopyTo(gray);
+			}
+
+
+			// 3. 灰度拉伸
+			const double minValue = 159;
+			const double maxValue = 250;
+
+			double alpha = 255.0 / (maxValue - minValue);
+			double beta = -minValue * alpha;
+
+			var result = new Mat();
+
+			gray.ConvertTo(
+				result,
+				DepthType.Cv8U,
+				alpha,
+				beta
+			);
+
+			return result;
+		}
+		/// <summary>
+		/// 专门针对微信昵称RIO的OCR识别开发的方法
+		/// </summary>
+		/// <param name="src"></param>
+		/// <returns></returns>
+		public Mat EnhanceForOcr(Mat src)
+		{
+			// 1. 转灰度
+			using var gray = new Mat();
+
+			if (src.NumberOfChannels == 3)
+			{
+				CvInvoke.CvtColor(src, gray, ColorConversion.Bgr2Gray);
+			}
+			else
+			{
+				src.CopyTo(gray);
+			}
+
+			// 2. 灰度拉伸
+			const double minValue = 159.0;
+			const double maxValue = 250.0;
+
+			double alpha = 255.0 / (maxValue - minValue);
+			double beta = -minValue * alpha;
+
+			var result = new Mat();
+
+			gray.ConvertTo(
+				result,
+				DepthType.Cv8U,
+				alpha,
+				beta
+			);
+
+			return result;
+		}
 		/// <summary>
 		/// 得到微信日期控件的某日期的坐标.
 		/// </summary>
@@ -423,6 +515,77 @@ namespace WeChatAuto.Services
 				ThreadNum = (int)(Environment.ProcessorCount * 0.7),
 			};
 			return ocrLite;
+		}
+
+
+		// 转灰度：兼容单通道（已灰度）、3 通道 BGR、4 通道 BGRA
+		public void ToGray(Mat src, Mat dst)
+		{
+			switch (src.NumberOfChannels)
+			{
+				case 1:
+					src.CopyTo(dst);
+					break;
+				case 4:
+					CvInvoke.CvtColor(src, dst, ColorConversion.Bgra2Gray);
+					break;
+				default:
+					CvInvoke.CvtColor(src, dst, ColorConversion.Bgr2Gray);
+					break;
+			}
+		}
+
+		// 检查源图中是否存在模板小图
+		public bool ContainsTemplate(
+			Mat source,
+			Mat template,
+			double threshold = 0.95
+		)
+		{
+			// 空图或模板大于源图时，无法匹配
+			if (source is null || template is null ||
+				source.IsEmpty || template.IsEmpty ||
+				template.Width > source.Width || template.Height > source.Height)
+			{
+				return false;
+			}
+
+			try
+			{
+				using var graySource = new Mat();
+				using var grayTemplate = new Mat();
+				ToGray(source, graySource);
+				ToGray(template, grayTemplate);
+
+				using var result = new Mat();
+				CvInvoke.MatchTemplate(
+					graySource,
+					grayTemplate,
+					result,
+					TemplateMatchingType.CcoeffNormed
+				);
+
+				if (result.IsEmpty)
+				{
+					return false;
+				}
+
+				result.MinMax(
+					out _,
+					out double[] maxValues,
+					out _,
+					out _
+				);
+
+				double maxValue = maxValues.Length > 0 ? maxValues[0] : 0.0;
+				System.Console.WriteLine($"maxValue = {maxValue}");
+				return maxValue >= threshold;
+			}
+			catch (CvException)
+			{
+				// OpenCV 内部异常（如通道/格式不兼容），视为未匹配到
+				return false;
+			}
 		}
 	}
 }

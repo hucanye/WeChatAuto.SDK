@@ -91,22 +91,28 @@ namespace WeAutoCommon.Configs
         /// ocr-det模型路径
         /// </summary>
         [JsonPropertyName("ocr_det_model_file_path")]
-        public string OCRDetModelFilePath { get; set; } = "ch_PP-OCRv5_mobile_det.onnx";
+        // public string OCRDetModelFilePath { get; set; } = "ch_PP-OCRv5_mobile_det.onnx";  //v5
+        public string OCRDetModelFilePath { get; set; } = "PP-OCRv6_det_small.onnx";  //v6
+        // public string OCRDetModelFilePath { get; set; } = "PP-OCRv6_det_medium.onnx";  //v6
         /// <summary>
         /// ocr-cls模型路径
         /// </summary>
         [JsonPropertyName("ocr_cls_model_file_path")]
-        public string OCRClsModelFilePath { get; set; } = "ch_ppocr_mobile_v2.0_cls_infer.onnx";
+        // public string OCRClsModelFilePath { get; set; } = "ch_ppocr_mobile_v2.0_cls_infer.onnx";
+        public string OCRClsModelFilePath { get; set; } = "ch_ppocr_mobile_v2.0_cls_mobile.onnx";  //v6
         /// <summary>
         /// ocr-rec模型路径
         /// </summary>
         [JsonPropertyName("ocr_rec_model_file_path")]
-        public string OCRRecModelFilePath { get; set; } = "ch_PP-OCRv5_rec_mobile_infer.onnx";
+        // public string OCRRecModelFilePath { get; set; } = "ch_PP-OCRv5_rec_mobile_infer.onnx"; //v5
+        public string OCRRecModelFilePath { get; set; } = "PP-OCRv6_rec_small.onnx";  //v6
+        // public string OCRRecModelFilePath { get; set; } = "PP-OCRv6_rec_medium.onnx";  //v6
         /// <summary>
         /// OCR的字典文件路径
         /// </summary>
         [JsonPropertyName("ocr_dict_model_file_path")]
-        public string OCRDictModelFilePath { get; set; } = "ppocrv5_dict.txt";
+        // public string OCRDictModelFilePath { get; set; } = "ppocrv5_dict.txt";  //v5
+        public string OCRDictModelFilePath { get; set; } = "ppocrv6_dict.txt";  //v6
         /// <summary>
         /// 是否启用调试模式
         /// </summary>
