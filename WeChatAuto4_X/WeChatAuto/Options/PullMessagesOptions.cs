@@ -36,15 +36,6 @@ namespace WeChatAuto.Options
         /// </summary>
         [JsonProperty("fetch_video")]
         public bool FetchVideo { get; set; } = false;
-        /// <summary>
-        /// 是否每次返回最新的聊天记录，SDK会自动帮去重，仅返回新增加的聊天消息
-        /// 这里受<see cref="MessageMonitor.PullMessages"/>的 maxFetchNumber 参数的影响
-        /// 例如: 如果 maxFetchNumber 设置为50，而此选项IsNew设置为True,则行为如下：
-        /// 1. 如果抓取到第30个消息时遇到旧的消息，则返回30条消息
-        /// 2. 如果抓取超过50(见上面maxFetchNumber的设置)条消息，而且还是新消息，则返回 50 条消息
-        /// </summary>
-        [JsonProperty("is_new")]
-        public bool IsNew { get; set; } = false;
 
         /// <summary>
         /// 如果聊天记录中有红包、转账，是否点击
