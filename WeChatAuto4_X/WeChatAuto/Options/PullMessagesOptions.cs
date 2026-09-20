@@ -59,6 +59,8 @@ namespace WeChatAuto.Options
         /// </summary>
         [JsonProperty("is_ocr_debug")]
         public bool IsOCRDebug { get; set; } = false;
+        [JsonProperty("is_capture_ori_image")]
+        public bool IsCaptureOriImage { get; set; } = false;
         /// <summary>
         /// 一般不用设置
         /// 由于可能OCR的局限设置的兜底方案，如:
@@ -90,6 +92,6 @@ namespace WeChatAuto.Options
         /// 传入的参数: SDK传入最新获取的消息列表,详情请参考<seealso cref="SimpleMessageBubble"/>
         /// 返回： 写入为真还是假.
         /// </summary>
-        public Func<List<SimpleMessageBubble>,bool> WriteDataBaseCallback { get; set; } = null;
+        public Func<List<SimpleMessageBubble>, bool> WriteDataBaseCallback { get; set; } = null;
     }
 }
