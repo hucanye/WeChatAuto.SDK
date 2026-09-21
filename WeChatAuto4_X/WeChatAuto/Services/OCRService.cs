@@ -301,96 +301,82 @@ namespace WeChatAuto.Services
 			}
 		}
 
+		#region 针对微信昵称的OCR前置处理算法
 		/// <summary>
-		/// 专门针对微信昵称RIO的OCR前置处理方法
+		/// 对图像进行预处理，去除极宽空白并增强文字对比度
 		/// </summary>
-		/// <param name="src"></param>
-		/// <returns></returns>
-		public Mat PrepareForOcr(Mat src)
+		/// <param name="src">源图</param>
+		/// <param name="padding">裁剪后四周保留的像素 padding</param>
+		/// <returns>处理后的 Mat 对象</returns>
+		public Mat ProcessImageForOcr(Mat src, int padding = 15)
 		{
-			// 2. 放大
-			using var resized = new Mat();
+			// 2. 转为灰度图
+			using Mat gray = new Mat();
+			CvInvoke.CvtColor(src, gray, ColorConversion.Bgr2Gray);
 
-			CvInvoke.Resize(
-				src,
-				resized,
-				Size.Empty,
-				3.0,
-				3.0,
-				Inter.Cubic
-			);
-			// 1. BGR -> Gray
-			using var gray = new Mat();
+			// 3. 增强对比度（使用 CLAHE 自适应直方图均衡化）
+			using Mat enhancedGray = new Mat();
+			CvInvoke.CLAHE(gray, 3.0, new Size(8, 8), enhancedGray);
 
-			if (resized.NumberOfChannels == 3)
+			// 4. 反向二值化，寻找文字的有效外框
+			using Mat binary = new Mat();
+			CvInvoke.Threshold(gray, binary, 230, 255, ThresholdType.BinaryInv);
+
+			// 5. 寻找轮廓，确定文字区域边界
+			using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+			using (Mat hierarchy = new Mat())
 			{
-				CvInvoke.CvtColor(
-					resized,
-					gray,
-					ColorConversion.Bgr2Gray
-				);
+				CvInvoke.FindContours(binary, contours, hierarchy, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+
+				Rectangle boundingBox = Rectangle.Empty;
+				for (int i = 0; i < contours.Size; i++)
+				{
+					Rectangle rect = CvInvoke.BoundingRectangle(contours[i]);
+
+					// 过滤噪点（面积过小的忽略）
+					if (rect.Width * rect.Height < 10)
+						continue;
+
+					if (boundingBox.IsEmpty)
+					{
+						boundingBox = rect;
+					}
+					else
+					{
+						boundingBox = Rectangle.Union(boundingBox, rect);
+					}
+				}
+
+				// 如果没找到有效文字区，返回增强后的灰度图
+				if (boundingBox.IsEmpty)
+				{
+					gray.Dispose();
+					binary.Dispose();
+					return enhancedGray;
+				}
+
+				// 6. 给裁剪框加上适当 Padding
+				int x = Math.Max(0, boundingBox.X - padding);
+				int y = Math.Max(0, boundingBox.Y - padding);
+				int width = Math.Min(src.Width - x, boundingBox.Width + padding * 2);
+				int height = Math.Min(src.Height - y, boundingBox.Height + padding * 2);
+
+				Rectangle cropRect = new Rectangle(x, y, width, height);
+
+				// 7. 在增强后的灰度图上裁剪出文字区域
+				using Mat croppedMat = new Mat(enhancedGray, cropRect);
+				Mat result = croppedMat.Clone();
+
+				return result;
 			}
-			else
-			{
-				resized.CopyTo(gray);
-			}
-
-
-			// 3. 灰度拉伸
-			const double minValue = 159;
-			const double maxValue = 250;
-
-			double alpha = 255.0 / (maxValue - minValue);
-			double beta = -minValue * alpha;
-
-			var result = new Mat();
-
-			gray.ConvertTo(
-				result,
-				DepthType.Cv8U,
-				alpha,
-				beta
-			);
-
-			return result;
 		}
-		/// <summary>
-		/// 专门针对微信昵称RIO的OCR识别开发的方法
-		/// </summary>
-		/// <param name="src"></param>
-		/// <returns></returns>
-		public Mat EnhanceForOcr(Mat src)
+
+		private void Test(Mat mat)
 		{
-			// 1. 转灰度
-			using var gray = new Mat();
-
-			if (src.NumberOfChannels == 3)
-			{
-				CvInvoke.CvtColor(src, gray, ColorConversion.Bgr2Gray);
-			}
-			else
-			{
-				src.CopyTo(gray);
-			}
-
-			// 2. 灰度拉伸
-			const double minValue = 159.0;
-			const double maxValue = 250.0;
-
-			double alpha = 255.0 / (maxValue - minValue);
-			double beta = -minValue * alpha;
-
-			var result = new Mat();
-
-			gray.ConvertTo(
-				result,
-				DepthType.Cv8U,
-				alpha,
-				beta
-			);
-
-			return result;
+			CvInvoke.Imshow("test",mat);
+			CvInvoke.WaitKey();
 		}
+		#endregion
 		/// <summary>
 		/// 得到微信日期控件的某日期的坐标.
 		/// </summary>
