@@ -7,9 +7,12 @@
 
 如果运行示例时遇到问题，请参考以下常见问题解答：
 
+
 https://github.com/scottfly189/WeChatAuto.SDK/issues/3
+
 
 https://github.com/scottfly189/WeChatAuto.SDK/blob/master/MD/faq.md
 
+## 注意事项
 
 > 注意: 此Demo为.net10-winform示例，若您使用.net4.8 framwork,请联系作者;
