@@ -302,27 +302,91 @@ namespace WeChatAuto.Services
 		}
 
 		#region 针对微信昵称的OCR前置处理算法
+		// /// <summary>
+		// /// 对图像进行预处理，去除极宽空白并增强文字对比度
+		// /// </summary>
+		// /// <param name="src">源图</param>
+		// /// <param name="padding">裁剪后四周保留的像素 padding</param>
+		// /// <returns>处理后的 Mat 对象</returns>
+		// public Mat ProcessImageForOcr(Mat src, int padding = 15)
+		// {
+		// 	// 2. 转为灰度图
+		// 	using Mat gray = new Mat();
+		// 	CvInvoke.CvtColor(src, gray, ColorConversion.Bgr2Gray);
+
+		// 	// 3. 增强对比度（使用 CLAHE 自适应直方图均衡化）
+		// 	using Mat enhancedGray = new Mat();
+		// 	CvInvoke.CLAHE(gray, 3.0, new Size(8, 8), enhancedGray);
+
+		// 	// 4. 反向二值化，寻找文字的有效外框
+		// 	using Mat binary = new Mat();
+		// 	CvInvoke.Threshold(gray, binary, 230, 255, ThresholdType.BinaryInv);
+
+		// 	// 5. 寻找轮廓，确定文字区域边界
+		// 	using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
+		// 	using (Mat hierarchy = new Mat())
+		// 	{
+		// 		CvInvoke.FindContours(binary, contours, hierarchy, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+
+		// 		Rectangle boundingBox = Rectangle.Empty;
+		// 		for (int i = 0; i < contours.Size; i++)
+		// 		{
+		// 			Rectangle rect = CvInvoke.BoundingRectangle(contours[i]);
+
+		// 			// 过滤噪点（面积过小的忽略）
+		// 			if (rect.Width * rect.Height < 10)
+		// 				continue;
+
+		// 			if (boundingBox.IsEmpty)
+		// 			{
+		// 				boundingBox = rect;
+		// 			}
+		// 			else
+		// 			{
+		// 				boundingBox = Rectangle.Union(boundingBox, rect);
+		// 			}
+		// 		}
+
+		// 		// 如果没找到有效文字区，返回增强后的灰度图
+		// 		if (boundingBox.IsEmpty)
+		// 		{
+		// 			return enhancedGray.Clone();
+		// 		}
+
+		// 		// 6. 给裁剪框加上适当 Padding
+		// 		int x = Math.Max(0, boundingBox.X - padding);
+		// 		int y = Math.Max(0, boundingBox.Y - padding);
+		// 		int width = Math.Min(src.Width - x, boundingBox.Width + padding * 2);
+		// 		int height = Math.Min(src.Height - y, boundingBox.Height + padding * 2);
+
+		// 		Rectangle cropRect = new Rectangle(x, y, width, height);
+
+		// 		// 7. 在增强后的灰度图上裁剪出文字区域
+		// 		using Mat croppedMat = new Mat(enhancedGray, cropRect);
+		// 		Mat result = croppedMat.Clone();
+
+		// 		return result;
+		// 	}
+		// }
+
 		/// <summary>
-		/// 对图像进行预处理，去除极宽空白并增强文字对比度
+		/// 对图像进行预处理：仅切除无用极宽空白，保持文字原始清晰度与笔画边缘
 		/// </summary>
-		/// <param name="src">源图</param>
+		/// <param name="src">源图（彩色或灰度 Mat）</param>
 		/// <param name="padding">裁剪后四周保留的像素 padding</param>
 		/// <returns>处理后的 Mat 对象</returns>
 		public Mat ProcessImageForOcr(Mat src, int padding = 15)
 		{
-			// 2. 转为灰度图
+			// 1. 转为灰度图（仅用于寻找文字轮廓定位，不影响输出图像）
 			using Mat gray = new Mat();
 			CvInvoke.CvtColor(src, gray, ColorConversion.Bgr2Gray);
 
-			// 3. 增强对比度（使用 CLAHE 自适应直方图均衡化）
-			using Mat enhancedGray = new Mat();
-			CvInvoke.CLAHE(gray, 3.0, new Size(8, 8), enhancedGray);
-
-			// 4. 反向二值化，寻找文字的有效外框
+			// 2. 反向二值化，把浅背景变黑、浅灰文字变白，方便寻框
+			// 阈值 230 可保证浅灰文字被完整捕捉
 			using Mat binary = new Mat();
 			CvInvoke.Threshold(gray, binary, 230, 255, ThresholdType.BinaryInv);
 
-			// 5. 寻找轮廓，确定文字区域边界
+			// 3. 寻找轮廓，确定文字区域有效边界
 			using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
 			using (Mat hierarchy = new Mat())
 			{
@@ -333,7 +397,7 @@ namespace WeChatAuto.Services
 				{
 					Rectangle rect = CvInvoke.BoundingRectangle(contours[i]);
 
-					// 过滤噪点（面积过小的忽略）
+					// 过滤极小噪点（面积小于 10 像素的忽略）
 					if (rect.Width * rect.Height < 10)
 						continue;
 
@@ -347,15 +411,13 @@ namespace WeChatAuto.Services
 					}
 				}
 
-				// 如果没找到有效文字区，返回增强后的灰度图
+				// 如果没找到有效文字区，直接返回原图副本
 				if (boundingBox.IsEmpty)
 				{
-					gray.Dispose();
-					binary.Dispose();
-					return enhancedGray;
+					return src.Clone();
 				}
 
-				// 6. 给裁剪框加上适当 Padding
+				// 4. 给裁剪框加上适当 Padding，防止贴边切掉边缘笔画
 				int x = Math.Max(0, boundingBox.X - padding);
 				int y = Math.Max(0, boundingBox.Y - padding);
 				int width = Math.Min(src.Width - x, boundingBox.Width + padding * 2);
@@ -363,17 +425,16 @@ namespace WeChatAuto.Services
 
 				Rectangle cropRect = new Rectangle(x, y, width, height);
 
-				// 7. 在增强后的灰度图上裁剪出文字区域
-				using Mat croppedMat = new Mat(enhancedGray, cropRect);
-				Mat result = croppedMat.Clone();
+				// 5. 关键修改：直接从原始源图 src（或未修饰的灰度图 gray）上进行裁剪
+				using Mat croppedMat = new Mat(src, cropRect);
 
-				return result;
+				return croppedMat.Clone();
 			}
 		}
 
 		private void Test(Mat mat)
 		{
-			CvInvoke.Imshow("test",mat);
+			CvInvoke.Imshow("test", mat);
 			CvInvoke.WaitKey();
 		}
 		#endregion
