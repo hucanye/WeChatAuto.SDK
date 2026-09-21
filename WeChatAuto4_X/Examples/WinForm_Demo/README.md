@@ -7,11 +7,9 @@
 
 如果运行示例时遇到问题，请参考以下常见问题解答：
 
+👉 [没有ui tree 怎么办？](https://github.com/scottfly189/WeChatAuto.SDK/issues/3)
 
-https://github.com/scottfly189/WeChatAuto.SDK/issues/3
-
-
-https://github.com/scottfly189/WeChatAuto.SDK/blob/master/MD/faq.md
+👉 [其他FAQ](https://github.com/scottfly189/WeChatAuto.SDK/blob/master/MD/faq.md)
 
 ## 注意事项
 
