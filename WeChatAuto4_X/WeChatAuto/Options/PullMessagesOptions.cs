@@ -43,6 +43,11 @@ namespace WeChatAuto.Options
         [JsonProperty("click_red_envelope")]
         public bool ClickRedEnvelope { get; set; } = false;
 
+        /// <summary>
+        /// 使用LCS/Diff Block算法时的比较数量，默认为3
+        /// </summary>
+        [JsonProperty("diff_count")]
+        public int DiffCount {get;set;} = 3;
 
         /// <summary>
         /// 到底部时重试次数，默认三次
@@ -59,6 +64,9 @@ namespace WeChatAuto.Options
         /// </summary>
         [JsonProperty("is_ocr_debug")]
         public bool IsOCRDebug { get; set; } = false;
+        /// <summary>
+        /// 是否将源图截取到temp目录，方便ocr调试,默认为False
+        /// </summary>
         [JsonProperty("is_capture_ori_image")]
         public bool IsCaptureOriImage { get; set; } = false;
         /// <summary>
