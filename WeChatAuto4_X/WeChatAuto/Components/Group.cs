@@ -114,7 +114,7 @@ namespace WeChatAuto.Components
         internal void ClickChatInfoButton()
         {
             var path = "/Group/Custom/Group/Group/Group/Custom/Custom/Custom/Group/Custom/Custom/Group/Group/Group/Group/Group/Group/Group/Group/Group/Group/Button[@AutomationId='content_view.top_content_view.title_h_view.right_v_view.right_content_h_view.right_content_v_view.right_ui_.more_button'][@Name='聊天信息']";
-            var buttonRetry = Retry.WhileNull(()=>_Client.MainWindow.FindFirstByXPath(path),TimeSpan.FromSeconds(2),TimeSpan.FromMilliseconds(200));
+            var buttonRetry = Retry.WhileNull(() => _Client.MainWindow.FindFirstByXPath(path), TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(200));
             if (buttonRetry.Success)
             {
                 var button = buttonRetry.Result;
@@ -372,6 +372,7 @@ namespace WeChatAuto.Components
             HeaderInfo title = this._Client.ChatContent.ChatHeader.GetTitleCore(automation);
             if (!title.CanTalk())
                 return resultList;
+            this._Client.MainWindow.Focus();
             invokeButton.Click();
             RandomWait.Wait(600, 1200);
             var result = __ClickChatHistoryButton(automation, invokeButton, title.Title);  //打开消息历史窗口
@@ -394,6 +395,23 @@ namespace WeChatAuto.Components
                 var index = 0;
                 var oldSnapshot = new List<string>();
                 var point = listBox.BoundingRectangle.Center();
+                //先往上
+                while (index < 3)
+                {
+                    var listItems = listBox.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem));
+                    var newSnapshot = listItems.Select(u => u.Name + "|" + u.Properties.RuntimeId.ToUniqueString()).ToList();
+                    var exceptList = newSnapshot.Except(oldSnapshot).ToList();
+                    if (exceptList.Count() > 0)
+                    {
+                        index = 0;
+                        oldSnapshot = newSnapshot;
+                    }
+                    MouseScrollHelper.UpStep(point.Confusion(10, 10), 3);
+                    index++;
+                }
+                index = 0;
+                oldSnapshot = new List<string>();
+                //再往下获取
                 while (index < 4)
                 {
                     var listItems = listBox.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem));
